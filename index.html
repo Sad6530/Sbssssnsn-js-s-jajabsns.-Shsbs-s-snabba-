@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Secure Alarm</title>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      padding-top: 100px;
+    }
+    input, button {
+      padding: 12px;
+      font-size: 18px;
+      margin: 10px;
+    }
+    a {
+      color: #00aced;
+    }
+  </style>
+</head>
+<body>
+  <h1>Device Locked</h1>
+  <p>Enter the unlock code to stop the alarm:</p>
+  <input type="text" id="codeInput" placeholder="Enter code">
+  <button onclick="checkCode()">Unlock</button>
+  <p>If you don't have the code, contact the admin via Telegram:<br>
+  <a href="https://t.me/YourTelegramBotUsername" target="_blank">Message on Telegram</a></p>
+
+  <audio id="alarm" autoplay loop>
+    <source src="alarm.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    const correctCode = "22";
+    const alarm = document.getElementById("alarm");
+
+    function vibrateLoop() {
+      if (navigator.vibrate) {
+        navigator.vibrate([500, 500]);
+        setTimeout(vibrateLoop, 2000);
+      }
+    }
+
+    function checkCode() {
+      const input = document.getElementById("codeInput").value;
+      if (input === correctCode) {
+        fetch('/unlock', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({code: input})
+        });
+        alarm.pause();
+        navigator.vibrate(0);
+        alert("Unlocked!");
+      } else {
+        alert("Incorrect code!");
+      }
+    }
+
+    vibrateLoop();
+    alarm.play().catch(() => {
+      alert("Please allow sound playback.");
+    });
+
+    fetch('/log', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({userAgent: navigator.userAgent})
+    });
+  </script>
+</body>
+</html>
